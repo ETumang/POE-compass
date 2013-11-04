@@ -1,11 +1,6 @@
 #include <Adafruit_GPS.h>
 #include <SoftwareSerial.h>
 
-#include <Wire.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_LSM303.h>
-
-
 // Connect the GPS Power pin to 5V
 // Connect the GPS Ground pin to ground
 // If using software serial (sketch example default):
@@ -32,25 +27,10 @@ Adafruit_GPS GPS(&mySerial);
 boolean usingInterrupt = false;
 void useInterrupt(boolean);
 
-Adafruit_LSM303_Mag mag = Adafruit_LSM303_Mag(12345);
-Adafruit_LSM303_Accel accel = Adafruit_LSM303_Accel(54321);
-
 void setup()  
 {
   Serial.begin(115200);
-  Serial.println("Adafruit GPS/magnetometer library basic test!");
-  if(!mag.begin())
-  {
-    /* There was a problem detecting the LSM303 ... check your connections */
-    Serial.println("Ooops, no LSM303 detected ... Check your wiring!");
-    while(1);
-  }
-  if(!accel.begin())
-  {
-    /* There was a problem detecting the ADXL345 ... check your connections */
-    Serial.println("Ooops, no LSM303 detected ... Check your wiring!");
-    while(1);
-  }
+  Serial.println("Adafruit GPS library basic test!");
   GPS.begin(9600);
 
   // uncomment this line to turn on RMC (recommended minimum) and GGA (fix data) including altitude
@@ -109,24 +89,4 @@ void useInterrupt(boolean v) {
 
 void loop()
 {
-  sensors_event_t event; 
-  mag.getEvent(&event);
-  accel.getEvent(&event);
-  
-  float Pi = 3.14159;
-  
-  // Calculate the angle of the vector y,x
-  float heading = (atan2(event.magnetic.y,event.magnetic.x) * 180) / Pi;
-  
-  // Normalize to 0-360
-  if (heading < 0)
-  {
-    heading = 360 + heading;
-  }
-  Serial.print("Compass Heading: ");
-  Serial.println(heading);
-  Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("  ");
-  Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
-  Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
-  delay(100);
 }
