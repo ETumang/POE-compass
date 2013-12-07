@@ -1,21 +1,21 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_LSM303.h>
- 
+
 /* Assign a unique ID to these sensors */
 Adafruit_LSM303_Accel accel = Adafruit_LSM303_Accel(54321);
 Adafruit_LSM303_Mag mag = Adafruit_LSM303_Mag(12345);
- 
+
 float AccelMinX, AccelMaxX;
 float AccelMinY, AccelMaxY;
 float AccelMinZ, AccelMaxZ;
- 
+
 float MagMinX, MagMaxX;
 float MagMinY, MagMaxY;
 float MagMinZ, MagMaxZ;
- 
+
 long lastDisplayTime;
- 
+
 void setup(void) 
 {
   Serial.begin(9600);
@@ -37,7 +37,7 @@ void setup(void)
   }
   lastDisplayTime = millis();
 }
- 
+
 void loop(void) 
 {
   /* Get a new sensor event */ 
@@ -52,19 +52,19 @@ void loop(void)
   
   if (accelEvent.acceleration.y < AccelMinY) AccelMinY = accelEvent.acceleration.y;
   if (accelEvent.acceleration.y > AccelMaxY) AccelMaxY = accelEvent.acceleration.y;
- 
+
   if (accelEvent.acceleration.z < AccelMinZ) AccelMinZ = accelEvent.acceleration.z;
   if (accelEvent.acceleration.z > AccelMaxZ) AccelMaxZ = accelEvent.acceleration.z;
- 
+
   if (magEvent.magnetic.x < MagMinX) MagMinX = magEvent.magnetic.x;
   if (magEvent.magnetic.x > MagMaxX) MagMaxX = magEvent.magnetic.x;
   
   if (magEvent.magnetic.y < MagMinY) MagMinY = magEvent.magnetic.y;
   if (magEvent.magnetic.y > MagMaxY) MagMaxY = magEvent.magnetic.y;
- 
+
   if (magEvent.magnetic.z < MagMinZ) MagMinZ = magEvent.magnetic.z;
   if (magEvent.magnetic.z > MagMaxZ) MagMaxZ = magEvent.magnetic.z;
- 
+
   if ((millis() - lastDisplayTime) > 1000)  // display once/second
   {
     Serial.print("Accel Minimums: "); Serial.print(AccelMinX); Serial.print("  ");Serial.print(AccelMinY); Serial.print("  "); Serial.print(AccelMinZ); Serial.println();
