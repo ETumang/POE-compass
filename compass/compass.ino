@@ -1,5 +1,5 @@
 // Libraries
-#include <Servo.h>
+#include <PWMServo.h>
 #include <Wire.h>
 #include <LSM303.h>
 #include <Adafruit_GPS.h>
@@ -7,7 +7,7 @@
 
 // Start sensors
 LSM303 compass;
-Servo aServo;
+PWMServo aServo;
 SoftwareSerial mySerial(3, 2); // For GPS
 Adafruit_GPS GPS(&mySerial);
 #define GPSECHO  false;
@@ -17,7 +17,7 @@ void useInterrupt(boolean); // Func prototype keeps Arduino 0023 happy
 void setup() {
   Serial.begin(115200);
   Serial.println("Hi, this is working.");
-  aServo.attach(4);
+  aServo.attach(9);
   Wire.begin();
   compass.init();
   compass.enableDefault();
@@ -100,6 +100,9 @@ float calcTarget(float rawlat1, float rawlong1, float rawlat2, float rawlong2){
   Serial.print("Change in Longitide: ");
   Serial.println(dlong);
   float target = atan2(dlong,dlat) * 180 / pi;
+  if (target < 0) {
+    target = target + 360;
+  }
   return target;
 }
 
@@ -118,5 +121,5 @@ void setServo(float target, float current) {
     motorpos = 102 + motorpos;
   }
   Serial.println(motorpos);
-//  aServo.write(motorpos);
+  aServo.write(motorpos);
 }
