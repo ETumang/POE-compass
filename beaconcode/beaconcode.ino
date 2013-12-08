@@ -14,11 +14,10 @@ SoftwareSerial mySerial(8,4);
 
 Adafruit_GPS GPS(&mySerial);
 
-int RFarray[3]; // size of array
-
-uint8_t data[3];
+long int RFarray[2]; // size of array
 
 int buttonPin = 3;
+
 
 int buttonState = digitalRead(buttonPin);
 
@@ -37,6 +36,7 @@ unsigned long total_time = 0;
 unsigned long diff_time;
 
 float timer = millis();
+uint8_t data[64];
 
 void setup() {
 
@@ -160,13 +160,23 @@ if ( (GPS.fix)& (buttonpushed == true) or (GPS.fix)&  (diff_time > 60000)){ //te
   RFarray[0] = GPS.latitude*10000;//gives out the latitude
 
   RFarray[1] = GPS.longitude*10000;// gives out longitude
-
-  RFarray[2] = GPS.speed*10000;
   
-  uint8_t data[] = {RFarray[0], RFarray[1]};
-
-  beacon.send(data,sizeof(data));
-  Serial.print(data, DEC);  
+  uint32_t lat= RFarray[0];
+  uint32_t lon = RFarray[1]; 
+ 
+  uint8_t la0 = lat;
+  uint8_t la1 = lat>>8;
+  uint8_t la2 = lat>>16;
+  uint8_t la3 = lat>>24;
+ 
+  uint8_t lo0 = lon;
+  uint8_t lo1 = lon>>8;
+  uint8_t lo2 = lon>>16;
+  uint8_t lo3 = lon>>24;
+ 
+  uint8_t data[] = {la0,la1,la2,la3,lo0,lo1,lo2,lo3};
+  
+  beacon.send(data,sizeof(data));  
 
   beacon.waitPacketSent();
   
