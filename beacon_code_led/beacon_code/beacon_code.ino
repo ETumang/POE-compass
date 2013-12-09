@@ -128,7 +128,7 @@ void loop()
 if (time > 0 & time < 5) {
 setColor(0, 0, 255);} // green
 if (time >5 & time < 10) {
-setColor(255, 0, 0);} // blue
+setColor(255, 255, 0); // yellow
 if (time >10 & time <15 ) {
 setColor(0, 255, 0);} // red
 if (time >15 ) {
