@@ -1,6 +1,5 @@
-#include <SPI.h>
-
 // Libraries
+#include <SPI.h>
 #include <PWMServo.h>
 #include <Wire.h>
 #include <LSM303.h>
@@ -14,26 +13,26 @@
 // Start sensors
 LSM303 compass;
 PWMServo aServo;
+
 SoftwareSerial mySerial(8, 4); // For GPS
 Adafruit_GPS GPS(&mySerial);
 #define GPSECHO  false;
 boolean usingInterrupt = false;
-void useInterrupt(boolean); // Func prototype keeps Arduino 0023 happy
+void useInterrupt(boolean);
+
 RF22 rx;
-//check for new transmission
-boolean haveRf = false;
-//longitude and latitude of beacons
-float beaconPos[2];
 //hold raw RF data
 uint8_t buf[10];
 uint8_t len = sizeof(buf);
 int rfTime;
 int last_rx;
+boolean haveRf = false; // Have we ever received a transmission
+float beaconPos[2]; //longitude and latitude of beacons
 
 void setup() {
   Serial.begin(9600);
   aServo.attach(9);
-  //Wire.begin();
+  Wire.begin();
   compass.init();
   compass.enableDefault();
   compass.m_min = (LSM303::vector<int16_t>){-643, -606, -577}; // Compass calibration
@@ -59,17 +58,19 @@ void loop() {
 
   // Constantly reads for new GPS data
   char c = GPS.read();
-  //  if (GPSECHO)
-  //      if (c) Serial.print(c);
   if (GPS.newNMEAreceived()) {
     if (!GPS.parse(GPS.lastNMEA()))
       return; // If we miss something then just get it next loop
   }
+  rfTime = millis() - last_rx;
+  if (rx.available())   
+    getRf(); 
 
-  if (timer > millis())  timer = millis(); // In case one of these rolls over max value
+  if (timer > millis())
+    timer = millis(); // In case one of these rolls over max value
   if (millis() - timer > 2000) { // Run once/2 seconds
   
-    if (GPS.fix) {
+    if (GPS.fix && haveRf && (millis() - rfTime < 10000)) {
       // read from magnetometer
       float current = getHeading();
   
@@ -84,9 +85,9 @@ void loop() {
       // Example Needham-ish Coordinates
 //      float hyplat1 = 4217.6081;
 //      float hyplong1 = -7115.8617;
-      float hyplat2 = 5700.6081;
-      float hyplong2 = -7155.8617;
-      float target = calcTarget(rawlat1, rawlong1, hyplat2, hyplong2);
+//      float hyplat2 = 5700.6081;
+//      float hyplong2 = -7155.8617;
+      float target = calcTarget(rawlat1, rawlong1, beaconPos[0], beaconPos[1]);
       Serial.print("Target Heading: ");
       Serial.println(target);
       Serial.print("Current Heading: ");
@@ -95,18 +96,14 @@ void loop() {
       setServo(target, current);
     }
     
-    if (!(GPS.fix)) {
-      Serial.println("Working on it...");
-    }
-    
+    if (!(GPS.fix))
+      Serial.println("Working on getting a fix...");
+    if (!(haveRf))
+      Serial.println("Waiting for a transmission...");
+    if ((millis() - rfTime > 10000))
+      Serial.println("Waiting for fresh RF data...");
     timer = millis(); // Update Timer 
   }
-  
-  rfTime = millis() - last_rx;
-  if (rx.available())   
-    getRf(); 
-  
-
 }
 
 float getHeading() {
@@ -162,7 +159,4 @@ void getRf(){
     last_rx = millis();
     }
 }
-  
-  
-
   
