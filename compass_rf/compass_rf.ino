@@ -123,7 +123,7 @@ float calcTarget(float rawlat1, float rawlong1, float rawlat2, float rawlong2){
   Serial.println(dlat);
   Serial.print("Change in Longitide: ");
   Serial.println(dlong);
-  float target = atan2(dlong,dlat) * 180 / pi;
+  float target = (atan2(dlong,dlat) * 180 / pi) - 90; // Accounts for the orientation of the magnetometer in the box
   if (target < 0) {
     target = target + 360;
   }
