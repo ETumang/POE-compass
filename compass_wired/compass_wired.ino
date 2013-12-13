@@ -3,8 +3,8 @@
 #include <PWMServo.h>
 #include <Wire.h>
 #include <LSM303.h>
-//#include <Adafruit_GPS.h>
-//#include <SoftwareSerial.h>
+#include <Adafruit_GPS.h>
+#include <SoftwareSerial.h>
 //#include <RF22Mesh.h>
 //#include <RF22.h>
 //#include <RF22Router.h>
@@ -14,11 +14,12 @@
 LSM303 compass;
 PWMServo aServo;
 
-//SoftwareSerial mySerial(8, 4); // For GPS
-//Adafruit_GPS GPS(&mySerial);
-//#define GPSECHO  false;
-//boolean usingInterrupt = false;
-//void useInterrupt(boolean);
+SoftwareSerial mySerial(8, 4); // For GPS
+SoftwareSerial GPSSerial(5,6);
+Adafruit_GPS GPS(&GPSSerial);
+#define GPSECHO  false;
+boolean usingInterrupt = false;
+void useInterrupt(boolean);
 
 //RF22 rx;
 //hold raw RF data
@@ -38,6 +39,7 @@ int redPin = 7;
 
 void setup() {
   Serial.begin(9600);
+  mySerial.begin(9600);
   aServo.attach(9);
   Wire.begin();
   compass.init();
@@ -45,13 +47,13 @@ void setup() {
   compass.m_min = (LSM303::vector<int16_t>){-643, -606, -577}; // Compass calibration
   compass.m_max = (LSM303::vector<int16_t>){+647, +555, +531};
   
-//  GPS.begin(9600);
-//  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // Maybe RMC only?
-//  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
-//  GPS.sendCommand(PGCMD_ANTENNA);
+  GPS.begin(9600);
+  GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA); // Maybe RMC only?
+  GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+  GPS.sendCommand(PGCMD_ANTENNA);
  
-//  rx.init();
-//  rx.setModeRx();
+  //rx.init();
+  //rx.setModeRx();
     
   rfTime = 0;
   last_rx = 0;
@@ -90,14 +92,14 @@ setColor(0, 255, 0);} // red
 if (time >360 ) {
 digitalWrite(greenPin, LOW); }// turn on pullup resistors
 
-  // Constantly reads for new GPS data
-//  char c = GPS.read();
-//  if (GPS.newNMEAreceived()) {
-//    if (!GPS.parse(GPS.lastNMEA()))
-//      return; // If we miss something then just get it next loop
-//  }
+  //Constantly reads for new GPS data
+ char c = GPS.read();
+  if (GPS.newNMEAreceived()) {
+    if (!GPS.parse(GPS.lastNMEA()))
+      return; // If we miss something then just get it next loop
+    }
   rfTime = millis() - last_rx; // Time since last RF will increase until it gets new transmission
-  if (Serial.available() >= 8)   // Wait for two longs worth of data
+  if (mySerial.available()>=8)   // Wait for two longs worth of data
     getRf(); 
 
   if (timer > millis())
@@ -187,11 +189,11 @@ void setServo(float target, float current) {
 void getRf(){
 //    if (rx.recv(buf,&len)){
     long raw[2];
-    Serial.readBytes((char*) &raw,8); // Read over serial. Automatically divides into array.
+    mySerial.readBytes((char*) &raw,8); // Read over serial. Automatically divides into array.
     beaconPos[0] = float(raw[0])/10000;
     beaconPos[1] = float(raw[1])/10000;
     haveRf = true;
-//    rx.setModeRx();
+    mySerial.flush();
     last_rx = millis();
 //    }
 }
