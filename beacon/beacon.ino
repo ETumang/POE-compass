@@ -122,13 +122,13 @@ void loop()
 
 { 
 
-  time = millis()/1000;// for now use minutes
+  time = millis()*1000;// for now use minutes
   //prints time since program started
 
 if (time > 0 & time < 5) {
 setColor(0, 0, 255);} // green
 if (time >5 & time < 10) {
-setColor(255, 255, 0); // yellow
+setColor(255, 255, 0); }// yellow
 if (time >10 & time <15 ) {
 setColor(0, 255, 0);} // red
 if (time >15 ) {
@@ -140,7 +140,7 @@ if (timer > millis()) timer = millis();
 
 // approximately every 2 seconds or so, print out the current stats
 
-if (millis() - timer > 2000) {
+if (millis() - timer > 2000) 
 
   timer = millis(); // reset the timer 
 
@@ -200,7 +200,9 @@ if ( (GPS.fix)& (buttonpushed == true) or (GPS.fix)&  (diff_time > 60000)){ //on
  
   uint8_t data[] = {la0,la1,la2,la3,lo0,lo1,lo2,lo3};
   
-  beacon.send(data,sizeof(data));  
+  Serial.write(data,8);
+  
+  /*beacon.send(data,sizeof(data));  
 
   beacon.waitPacketSent();
   
@@ -215,9 +217,9 @@ if (beacon.waitAvailableTimeout(10))
         Serial.print("Hi");
       }
 
-    }
+    }*/
 
-  Serial.print("RF latitude "); 
+  /*Serial.print("RF latitude "); */
 
   /*Serial.print (RFarray[0]);
 
@@ -234,9 +236,11 @@ if (beacon.waitAvailableTimeout(10))
   Serial.println("     time for button ");
 
   Serial.println(total_time - last_time); */
+ 
 }
 
-}
+
+
 
 
 
