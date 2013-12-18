@@ -13,8 +13,8 @@ SoftwareSerial GPSSerial(6,5); //TX, RX
 Adafruit_GPS GPS(&GPSSerial);
 
 // Time variables
-int rfTime;
-int last_rx;
+unsigned long rfTime;
+unsigned long last_rx;
 boolean haveRf = false; // Have we ever received a transmission
 float beaconPos[2]; //longitude and latitude of beacons
 
@@ -22,6 +22,11 @@ float beaconPos[2]; //longitude and latitude of beacons
 uint32_t timer = millis();
 float pi = 3.141592653;
 long exponents[9] = {1,10,100,1000,10000,100000,1000000,10000000,100000000};
+
+// LED pins
+int redPin = 11; 
+int greenPin = 12;
+int bluePin = 13;
 
 void setup() {
   Serial.begin(9600);
@@ -39,10 +44,24 @@ void setup() {
     
   rfTime = 0;
   last_rx = 0;
+  
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+
 }
 
 void loop() {
 
+  if (timer < 300000) {
+    setColor(0, 255, 0);} // green
+  if ((timer > 300000) && (timer < 600000)) {
+    setColor(0, 0, 255);} // blue
+  if ((timer > 600000) && (timer < 900000)) {
+    setColor(255, 0, 0);} // red
+  if (timer > 900000) {
+    digitalWrite(greenPin, LOW); }// turn on pullup resistors
+  
   //Constantly reads for new GPS data
  char c = GPS.read();
   if (GPS.newNMEAreceived()) {
@@ -68,6 +87,10 @@ void loop() {
       //float rawlong1 = -07115.8617;
       float rawlat1 = GPS.latitude;
       float rawlong1 = GPS.longitude;
+      if(GPS.lat == 'S') // Account for hemisphere
+        rawlat1 = rawlat1*-1;
+      if(GPS.lon == 'W') // Hemisphere again
+        rawlong1 = rawlong1*-1;
       float target = calcTarget(rawlat1, rawlong1, beaconPos[0], beaconPos[1]);
       Serial.print("Target Heading: ");
       Serial.println(target);
@@ -76,7 +99,7 @@ void loop() {
       Serial.print("Move motor to: ");
       setServo(target, current);
     }
-    if (!(GPS.fix))
+    if (!(GPS.fixquality))
       Serial.println("Waiting on a fix");
     if (!(haveRf))
       Serial.println("Waiting for a transmission...");
@@ -91,12 +114,14 @@ float getHeading() {
   float heading = compass.heading((LSM303::vector<int>){1, 0, 0}) - 14.49; // Referenced to +X-axis, corrected for declination
   return heading;
 }
-
+ 
 float calcTarget(float rawlat1, float rawlong1, float rawlat2, float rawlong2){
   float lat1 = convertDeg(rawlat1);
   float long1 = convertDeg(rawlong1);
   float lat2 = convertDeg(rawlat2);
   float long2 = convertDeg(rawlong2);
+  Serial.println(long2);
+  Serial.println(long1);
   float dlat = (lat2 - lat1);
   float dlong = (long2 - long1) * cos((lat2 + lat1) / 360 * pi); // Longitude degrees narrow as you approach the poles
   Serial.print("Change in Latitude: ");
@@ -114,7 +139,7 @@ float calcTarget(float rawlat1, float rawlong1, float rawlat2, float rawlong2){
 float convertDeg(float reading){
   long raw = reading * 10000;
   float degrees = raw / 1000000; // Undo the 10000x and an additional 100x
-  Serial.print("Degrees: "); Serial.println(degrees);
+  //Serial.print("Degrees: "); Serial.println(degrees);
   float minutes = (raw % 1000000);
   minutes = minutes / 600000; // Undo the 10000x, 60 minutes per degree 
   degrees = (degrees) + minutes; // Result is decimal degrees

@@ -6,9 +6,10 @@ SoftwareSerial GPSSerial(9,10); //TX, RX
 Adafruit_GPS GPS(&GPSSerial);
 
 uint32_t timer = millis();
- 
-//int greenPin = 6;
-//int bluePin = 7;
+
+int redPin = 5; 
+int greenPin = 6;
+int bluePin = 7;
 
 void setup() {
 
@@ -19,28 +20,28 @@ void setup() {
   GPS.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
   GPS.sendCommand(PGCMD_ANTENNA);
  
-//  pinMode(redPin, OUTPUT);
-//  pinMode(greenPin, OUTPUT);
-//  pinMode(bluePin, OUTPUT);
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
 
 }
 
-//void setColor(int red, int green, int blue)
-//{
-//  analogWrite(greenPin, green);
-//  analogWrite(bluePin, blue);
-//  analogWrite(redPin, red);
-//}
+void setColor(int red, int green, int blue)
+{
+  analogWrite(redPin, red);
+  analogWrite(greenPin, green);
+  analogWrite(bluePin, blue);
+}
 
 void loop() { 
-//  if (timer < 300000) {
-//    setColor(0, 255, 0);} // green
-//  if ((timer > 300000) && (timer < 600000)) {
-//    setColor(0, 0, 255);} // blue
-//  if ((timer > 600000) && (timer < 900000)) {
-//    setColor(255, 0, 0);} // red
-//  if (timer > 900000) {
-//    digitalWrite(greenPin, LOW); }// turn on pullup resistors
+  if (timer < 300000) {
+    setColor(0, 255, 0);} // green
+  if ((timer > 300000) && (timer < 600000)) {
+    setColor(0, 0, 255);} // blue
+  if ((timer > 600000) && (timer < 900000)) {
+    setColor(255, 0, 0);} // red
+  if (timer > 900000) {
+    digitalWrite(greenPin, LOW); }// turn on pullup resistors
 
   char c = GPS.read();
   if (GPS.newNMEAreceived()) {
